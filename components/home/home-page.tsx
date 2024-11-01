@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { League } from '@/types/database'
 import Link from "next/link"
+import { Nav } from '@/components/nav'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CalendarDays, MapPin, Trophy, Users } from "lucide-react"
-import { CreateLeagueForm } from '@/components/create-league-form'
 
-export function Page() {
+export function HomePage() {
   const [leagues, setLeagues] = useState<League[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +32,6 @@ export function Page() {
           .order('start_date', { ascending: true })
 
         if (error) throw error
-
         setLeagues(data || [])
       } catch (e) {
         console.error('Error fetching leagues:', e)
@@ -53,26 +52,14 @@ export function Page() {
   const pastLeagues = leagues.filter(league => league.status === 'past')
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="flex items-center justify-between px-6 py-4 border-b">
-        <Link href="/" className="flex items-center space-x-2">
-          <Trophy className="w-6 h-6" />
-          <span className="text-xl font-bold">SportsLeague</span>
-        </Link>
-        <nav className="hidden md:flex space-x-4">
-          <Link href="/leagues" className="text-sm font-medium hover:underline">
-            Leagues
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-white border-b">
+        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center space-x-2">
+            <Trophy className="w-6 h-6" />
+            <span className="text-xl font-bold">SportsLeague</span>
           </Link>
-          <Link href="/teams" className="text-sm font-medium hover:underline">
-            Teams
-          </Link>
-          <Link href="/players" className="text-sm font-medium hover:underline">
-            Players
-          </Link>
-        </nav>
-        <div className="flex items-center space-x-4">
-          <CreateLeagueForm />
-          <Button>Sign In</Button>
+          <Nav />
         </div>
       </header>
       <main className="flex-grow container mx-auto px-6 py-8">
@@ -93,7 +80,6 @@ export function Page() {
               <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
-
           <TabsContent value="upcoming">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingLeagues.map((league) => (
@@ -117,9 +103,6 @@ export function Page() {
           </TabsContent>
         </Tabs>
       </main>
-      <footer className="border-t py-6 text-center text-sm text-gray-500">
-        © 2023 SportsLeague. All rights reserved.
-      </footer>
     </div>
   )
 }
@@ -150,4 +133,4 @@ function LeagueCard({ league }: { league: League }) {
       </CardFooter>
     </Card>
   )
-}
+} 

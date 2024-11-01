@@ -3,20 +3,9 @@
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { SignInButton, UserButton, SignOutButton, useUser } from "@clerk/nextjs"
-import { useRouter } from 'next/navigation'
 
 export function Nav() {
-  const { isSignedIn, user, isLoaded } = useUser()
-  const router = useRouter()
-  const isAdmin = user?.publicMetadata?.role === 'admin'
-
-  const handleAdminClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    console.log('Admin button clicked')
-    router.push('/admin')
-  }
-
-  if (!isLoaded) return null
+  const { isSignedIn } = useUser()
 
   return (
     <div className="flex items-center space-x-4">
@@ -27,14 +16,6 @@ export function Nav() {
           </SignInButton>
         ) : (
           <>
-            {isAdmin && (
-              <Button 
-                variant="ghost" 
-                onClick={handleAdminClick}
-              >
-                Admin Dashboard
-              </Button>
-            )}
             <UserButton />
             <SignOutButton>
               <Button variant="outline">Sign Out</Button>
@@ -44,4 +25,4 @@ export function Nav() {
       </div>
     </div>
   )
-}
+} 
