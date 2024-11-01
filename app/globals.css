@@ -76,3 +76,40 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Add this to your existing globals.css */
+.rdp {
+  margin: 0;
+}
+
+.rdp-months {
+  width: 100%;
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-table {
+  width: 100%;
+}
+
+.rdp-cell {
+  height: 40px;
+  width: 40px;
+}
+
+.rdp-head_cell {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.rdp-day_selected {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.rdp-day_today {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}

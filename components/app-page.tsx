@@ -1,13 +1,57 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import type { League } from '@/types/database'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CalendarDays, MapPin, Trophy, Users } from "lucide-react"
+import { CreateLeagueForm } from '@/components/create-league-form'
 
 export function Page() {
+  const [leagues, setLeagues] = useState<League[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchLeagues() {
+      try {
+        const { data, error } = await supabase
+          .from('leagues')
+          .select(`
+            *,
+            cities (
+              name,
+              state
+            )
+          `)
+          .eq('sport_id', 1) // Assuming 1 is soccer's ID
+          .order('start_date', { ascending: true })
+
+        if (error) throw error
+
+        setLeagues(data || [])
+      } catch (e) {
+        console.error('Error fetching leagues:', e)
+        setError('Failed to load leagues')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLeagues()
+  }, [])
+
+  if (loading) return <div>Loading leagues...</div>
+  if (error) return <div>Error: {error}</div>
+
+  const upcomingLeagues = leagues.filter(league => league.status === 'upcoming')
+  const currentLeagues = leagues.filter(league => league.status === 'current')
+  const pastLeagues = leagues.filter(league => league.status === 'past')
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between px-6 py-4 border-b">
@@ -27,18 +71,29 @@ export function Page() {
           </Link>
         </nav>
         <div className="flex items-center space-x-4">
-          <Input className="w-64" placeholder="Search leagues..." type="search" />
+          <CreateLeagueForm />
           <Button>Sign In</Button>
         </div>
       </header>
       <main className="flex-grow container mx-auto px-6 py-8">
-        <h1 className="text-4xl font-bold mb-8">Find Your Next Sports League</h1>
+        <h1 className="text-4xl font-bold mb-8">Find Your Next Soccer League</h1>
         <Tabs defaultValue="upcoming" className="mb-12">
-          <TabsList className="mb-4">
-            <TabsTrigger value="upcoming">Upcoming Leagues</TabsTrigger>
-            <TabsTrigger value="current">Current Leagues</TabsTrigger>
-            <TabsTrigger value="past">Past Leagues</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4 mb-6">
+            <TabsList>
+              <TabsTrigger value="upcoming">Upcoming Leagues</TabsTrigger>
+              <TabsTrigger value="current">Current Leagues</TabsTrigger>
+              <TabsTrigger value="past">Past Leagues</TabsTrigger>
+            </TabsList>
+            <div className="relative w-64">
+              <Input 
+                className="w-full" 
+                placeholder="Search by city..." 
+                type="search"
+              />
+              <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+
           <TabsContent value="upcoming">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingLeagues.map((league) => (
@@ -69,7 +124,7 @@ export function Page() {
   )
 }
 
-function LeagueCard({ league }) {
+function LeagueCard({ league }: { league: League }) {
   return (
     <Card className="overflow-hidden">
       <img src={league.image} alt={league.name} className="w-full h-48 object-cover" />
@@ -79,15 +134,15 @@ function LeagueCard({ league }) {
       <CardContent>
         <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
           <MapPin className="w-4 h-4" />
-          <span>{league.location}</span>
+          <span>{league.cities?.name}, {league.cities?.state}</span>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
           <CalendarDays className="w-4 h-4" />
-          <span>{league.date}</span>
+          <span>Starts {new Date(league.start_date).toLocaleDateString()}</span>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <Users className="w-4 h-4" />
-          <span>{league.teamCount} teams</span>
+          <span>Max {league.max_teams} teams</span>
         </div>
       </CardContent>
       <CardFooter>
@@ -96,84 +151,3 @@ function LeagueCard({ league }) {
     </Card>
   )
 }
-
-const upcomingLeagues = [
-  {
-    id: 1,
-    name: "Summer Soccer Championship",
-    location: "Los Angeles, CA",
-    date: "Starts July 15, 2023",
-    teamCount: 16,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 2,
-    name: "Fall Basketball Tournament",
-    location: "Chicago, IL",
-    date: "Starts September 1, 2023",
-    teamCount: 32,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 3,
-    name: "Winter Ice Hockey League",
-    location: "Toronto, Canada",
-    date: "Starts November 15, 2023",
-    teamCount: 12,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-]
-
-const currentLeagues = [
-  {
-    id: 4,
-    name: "Spring Tennis Open",
-    location: "Miami, FL",
-    date: "Ends June 30, 2023",
-    teamCount: 64,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 5,
-    name: "Volleyball Beach Series",
-    location: "San Diego, CA",
-    date: "Ends August 15, 2023",
-    teamCount: 24,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 6,
-    name: "City Football League",
-    location: "New York, NY",
-    date: "Ends July 31, 2023",
-    teamCount: 20,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-]
-
-const pastLeagues = [
-  {
-    id: 7,
-    name: "Winter Ski Championship",
-    location: "Aspen, CO",
-    date: "Ended March 15, 2023",
-    teamCount: 50,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 8,
-    name: "Spring Baseball Classic",
-    location: "Phoenix, AZ",
-    date: "Ended May 1, 2023",
-    teamCount: 30,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-  {
-    id: 9,
-    name: "National Rugby Tournament",
-    location: "Boston, MA",
-    date: "Ended April 30, 2023",
-    teamCount: 16,
-    image: "/placeholder.svg?height=200&width=400",
-  },
-]
